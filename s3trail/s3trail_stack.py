@@ -65,10 +65,12 @@ class S3TrailStack(Stack):
         s3trail = cloudtrail.Trail(
             self,
             "s3trail",
+            send_to_cloud_watch_logs=True,
             cloud_watch_logs_retention=logs.RetentionDays.ONE_YEAR,
             #   have to grant kms access to a principal
             # encryption_key=kms_key
         )
+        # kms_key.grant_encrypt(s3trail) # grant_encrypt_decrypt
 
         # s3trail.log_all_s3_data_events
 
