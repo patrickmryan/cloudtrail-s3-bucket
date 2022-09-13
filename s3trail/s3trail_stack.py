@@ -61,6 +61,7 @@ class S3TrailStack(Stack):
             **kms_params
         )
 
+        # https://docs.aws.amazon.com/cdk/api/v2/python/aws_cdk.aws_cloudtrail/Trail.html
         s3trail = cloudtrail.Trail(
             self,
             "s3trail",
@@ -68,6 +69,10 @@ class S3TrailStack(Stack):
             #   have to grant kms access to a principal
             # encryption_key=kms_key
         )
+
+        # s3trail.log_all_s3_data_events
+
+        # https://docs.aws.amazon.com/cdk/api/v2/python/aws_cdk.aws_cloudtrail/S3EventSelector.html#aws_cdk.aws_cloudtrail.S3EventSelector
         s3trail.add_s3_event_selector(
             [
                 cloudtrail.S3EventSelector(
