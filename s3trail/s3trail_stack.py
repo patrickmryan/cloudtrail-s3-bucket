@@ -54,7 +54,7 @@ class S3TrailStack(Stack):
 
         audited_bucket = s3.Bucket(
             self,
-            "Inbound",
+            "AuditedBucket",
             auto_delete_objects=True,
             removal_policy=RemovalPolicy.DESTROY,
             event_bridge_enabled=True,
