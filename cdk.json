@@ -15,6 +15,11 @@
     ]
   },
   "context": {
+
+    "EnableDebug": "True",
+    "PermissionsBoundaryPolicyArn": "",
+    "KmsKeyAlias": "alias/aws/s3",
+
     "@aws-cdk/aws-apigateway:usagePlanKeyOrderInsensitiveId": true,
     "@aws-cdk/core:stackRelativeExports": true,
     "@aws-cdk/aws-rds:lowercaseDbIdentifier": true,
@@ -33,8 +38,7 @@
     "@aws-cdk/aws-apigateway:disableCloudWatchRole": true,
     "@aws-cdk/core:enablePartitionLiterals": true,
     "@aws-cdk/core:target-partitions": [
-      "aws",
-      "aws-cn"
+      "aws"
     ]
   }
 }
