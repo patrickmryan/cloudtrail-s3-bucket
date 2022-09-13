@@ -42,14 +42,14 @@ class S3TrailStack(Stack):
         # if a KMS key name is provided, enable bucket encryption
         kms_key_alias = self.node.try_get_context("KmsKeyAlias")
         if kms_key_alias:
+            kms_key = kms.Key.from_lookup(self, "KmsS3Key", alias_name=kms_key_alias)
             kms_params = {
                 "encryption": s3.BucketEncryption.KMS,
                 "bucket_key_enabled": True,
-                "encryption_key": kms.Key.from_lookup(
-                    self, "KmsS3Key", alias_name=kms_key_alias
-                ),
+                "encryption_key": kms_key,
             }
         else:
+            kms_key = None
             kms_params = {}
 
         audited_bucket = s3.Bucket(
@@ -64,8 +64,9 @@ class S3TrailStack(Stack):
         s3trail = cloudtrail.Trail(
             self,
             "s3trail",
-            # encryption_key
             cloud_watch_logs_retention=logs.RetentionDays.ONE_YEAR,
+            #   have to grant kms access to a principal
+            # encryption_key=kms_key
         )
         s3trail.add_s3_event_selector(
             [
@@ -75,5 +76,5 @@ class S3TrailStack(Stack):
                 )
             ],
             # exclude_management_event_sources = [],
-            include_management_events=True,
+            include_management_events=False,
         )
