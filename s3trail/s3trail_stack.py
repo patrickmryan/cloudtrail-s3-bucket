@@ -52,21 +52,27 @@ class S3TrailStack(Stack):
             kms_key = None
             kms_params = {}
 
+        logs_bucket = s3.Bucket(self, "LogsBucket", **kms_params)
+
         audited_bucket = s3.Bucket(
             self,
             "AuditedBucket",
             auto_delete_objects=True,
             removal_policy=RemovalPolicy.DESTROY,
             event_bridge_enabled=True,
-            **kms_params
+            **kms_params,
+            server_access_logs_bucket=logs_bucket,
+            server_access_logs_prefix="AuditedBucket",
         )
+
+    def trail_for_bucket(self, audited_bucket):
 
         # https://docs.aws.amazon.com/cdk/api/v2/python/aws_cdk.aws_cloudtrail/Trail.html
         s3trail = cloudtrail.Trail(
             self,
             "s3trail",
-            send_to_cloud_watch_logs=True,
-            cloud_watch_logs_retention=logs.RetentionDays.ONE_YEAR,
+            # send_to_cloud_watch_logs=True,
+            # cloud_watch_logs_retention=logs.RetentionDays.ONE_YEAR,
             #   have to grant kms access to a principal
             # encryption_key=kms_key
         )
@@ -85,3 +91,5 @@ class S3TrailStack(Stack):
             # exclude_management_event_sources = [],
             include_management_events=False,
         )
+
+        return s3trail
