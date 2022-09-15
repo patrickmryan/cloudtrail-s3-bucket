@@ -65,6 +65,15 @@ class S3TrailStack(Stack):
             server_access_logs_prefix="AuditedBucket",
         )
 
+        # logs_bucket.add_to_resource_policy(
+        #     iam.PolicyStatement(
+        #         principals=[iam.ServicePrincipal("logging.s3.amazonaws.com")],
+        #         actions=["s3:PutObject"],
+        #         resources=[logs_bucket.arn_for_objects('*')]
+        #     )
+        # )
+        logs_bucket.grant_put(iam.ServicePrincipal("logging.s3.amazonaws.com"))
+
     def trail_for_bucket(self, audited_bucket):
 
         # https://docs.aws.amazon.com/cdk/api/v2/python/aws_cdk.aws_cloudtrail/Trail.html
