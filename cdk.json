@@ -18,7 +18,7 @@
 
     "EnableDebug": "True",
     "PermissionsBoundaryPolicyArn": "",
-    "KmsKeyAliaszzzzz": "alias/cloudtrail",
+    "KmsKeyAlias": "alias/cloudtrail",
 
     "@aws-cdk/aws-apigateway:usagePlanKeyOrderInsensitiveId": true,
     "@aws-cdk/core:stackRelativeExports": true,
