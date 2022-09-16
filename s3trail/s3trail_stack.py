@@ -61,8 +61,8 @@ class S3TrailStack(Stack):
             removal_policy=RemovalPolicy.DESTROY,
             event_bridge_enabled=True,
             **kms_params,
-            server_access_logs_bucket=logs_bucket,
-            server_access_logs_prefix="AuditedBucket",
+            # server_access_logs_bucket=logs_bucket,
+            # server_access_logs_prefix="AuditedBucket",
         )
 
         # logs_bucket.add_to_resource_policy(
@@ -72,9 +72,13 @@ class S3TrailStack(Stack):
         #         resources=[logs_bucket.arn_for_objects('*')]
         #     )
         # )
-        logs_bucket.grant_put(iam.ServicePrincipal("logging.s3.amazonaws.com"))
+        # logs_bucket.grant_put(iam.ServicePrincipal("logging.s3.amazonaws.com"))
 
-    def trail_for_bucket(self, audited_bucket):
+        trail = self.trail_for_bucket(bucket=audited_bucket, key=kms_key)
+
+        # audited_bucket.grant_put(iam.ServicePrincipal("cloudtrail.amazonaws.com"))
+
+    def trail_for_bucket(self, bucket, key):
 
         # https://docs.aws.amazon.com/cdk/api/v2/python/aws_cdk.aws_cloudtrail/Trail.html
         s3trail = cloudtrail.Trail(
@@ -83,9 +87,16 @@ class S3TrailStack(Stack):
             # send_to_cloud_watch_logs=True,
             # cloud_watch_logs_retention=logs.RetentionDays.ONE_YEAR,
             #   have to grant kms access to a principal
-            # encryption_key=kms_key
+            encryption_key=key,
         )
-        # kms_key.grant_encrypt(s3trail) # grant_encrypt_decrypt
+
+        if key:
+            key.grant_encrypt_decrypt(
+                iam.ServicePrincipal(
+                    "cloudtrail.amazonaws.com",
+                    conditions={"StringEquals": {"aws:SourceArn": s3trail.trail_arn}},
+                )
+            )
 
         # s3trail.log_all_s3_data_events
 
@@ -93,7 +104,7 @@ class S3TrailStack(Stack):
         s3trail.add_s3_event_selector(
             [
                 cloudtrail.S3EventSelector(
-                    bucket=audited_bucket,
+                    bucket=bucket,
                     # object_prefix
                 )
             ],
