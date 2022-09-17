@@ -41,23 +41,25 @@ class S3TrailStack(Stack):
 
         # if a KMS key name is provided, enable bucket encryption
 
-        # kms_key_alias = self.node.try_get_context("KmsKeyAlias")
-        # if kms_key_alias:
-        #     kms_key = kms.Key.from_lookup(self, "KmsS3Key", alias_name=kms_key_alias)
-        #     kms_params = {
-        #         "encryption": s3.BucketEncryption.KMS,
-        #         "bucket_key_enabled": True,
-        #         "encryption_key": kms_key,
-        #     }
-        # else:
-        #     kms_key = None
-        #     kms_params = {}
+        s3kms_key_alias = self.node.try_get_context("S3KmsKeyAlias")
+        if s3kms_key_alias:
+            s3kms_key = kms.Key.from_lookup(
+                self, "S3KmsKey", alias_name=s3kms_key_alias
+            )
+            s3kms_params = {
+                "encryption": s3.BucketEncryption.KMS,
+                "bucket_key_enabled": True,
+                "encryption_key": s3kms_key,
+            }
+        else:
+            s3kms_key = None
+            s3kms_params = {}
 
         trail_key = kms.Key(
             self,
             "CloudtrailKey",
             enable_key_rotation=True,
-            # removal_policy=RemovalPolicy.DESTROY,
+            removal_policy=RemovalPolicy.DESTROY,
         )
         kms_params = {
             "encryption": s3.BucketEncryption.KMS,
@@ -71,13 +73,27 @@ class S3TrailStack(Stack):
             auto_delete_objects=True,
             removal_policy=RemovalPolicy.DESTROY,
             event_bridge_enabled=True,
-            # **kms_params,
+            block_public_access=s3.BlockPublicAccess.BLOCK_ALL,
+            **s3kms_params,
         )
 
         trail_key.grant_encrypt_decrypt(
             iam.ServicePrincipal(
                 "cloudtrail.amazonaws.com",
-                # conditions={"StringEquals": {"aws:SourceArn": s3trail.trail_arn}},
+                #  "TrailARN": "arn:aws:cloudtrail:us-east-1:286367598331:trail/S3TrailStack-s3trail67C4C9C6-lOf0wRPnOBrS",
+                conditions={
+                    "StringEquals": {
+                        "aws:SourceArn": self.format_arn(
+                            service="cloudtrail",
+                            region=self.region,
+                            account=self.account,
+                            resource="trail",
+                            # use a wildcard so as to avoid a circular dependency
+                            # between the trail and the key
+                            resource_name=f"{self.stack_name}*",
+                        )
+                    }
+                },
             )
         )
 
@@ -87,15 +103,8 @@ class S3TrailStack(Stack):
             # send_to_cloud_watch_logs=True,
             # cloud_watch_logs_retention=logs.RetentionDays.ONE_YEAR,
             #   have to grant kms access to a principal
-            encryption_key=trail_key,
+            # encryption_key=trail_key,
         )
-
-        # kms_key.grant_encrypt_decrypt(
-        #     iam.ServicePrincipal(
-        #         "cloudtrail.amazonaws.com",
-        #         conditions={"StringEquals": {"aws:SourceArn": s3trail.trail_arn}},
-        #     )
-        # )
 
         # https://docs.aws.amazon.com/cdk/api/v2/python/aws_cdk.aws_cloudtrail/S3EventSelector.html#aws_cdk.aws_cloudtrail.S3EventSelector
         s3trail.add_s3_event_selector(
