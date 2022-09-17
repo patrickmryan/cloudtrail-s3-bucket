@@ -40,7 +40,6 @@ class S3TrailStack(Stack):
             iam.PermissionsBoundary.of(self).apply(policy)
 
         # if a KMS key name is provided, enable bucket encryption
-
         s3kms_key_alias = self.node.try_get_context("S3KmsKeyAlias")
         if s3kms_key_alias:
             s3kms_key = kms.Key.from_lookup(
@@ -61,11 +60,11 @@ class S3TrailStack(Stack):
             enable_key_rotation=True,
             removal_policy=RemovalPolicy.DESTROY,
         )
-        kms_params = {
-            "encryption": s3.BucketEncryption.KMS,
-            "bucket_key_enabled": True,
-            "encryption_key": trail_key,
-        }
+        # kms_params = {
+        #     "encryption": s3.BucketEncryption.KMS,
+        #     "bucket_key_enabled": True,
+        #     "encryption_key": trail_key,
+        # }
 
         audited_bucket = s3.Bucket(
             self,
@@ -82,7 +81,7 @@ class S3TrailStack(Stack):
                 "cloudtrail.amazonaws.com",
                 #  "TrailARN": "arn:aws:cloudtrail:us-east-1:286367598331:trail/S3TrailStack-s3trail67C4C9C6-lOf0wRPnOBrS",
                 conditions={
-                    "StringEquals": {
+                    "StringLike": {
                         "aws:SourceArn": self.format_arn(
                             service="cloudtrail",
                             region=self.region,
@@ -90,7 +89,7 @@ class S3TrailStack(Stack):
                             resource="trail",
                             # use a wildcard so as to avoid a circular dependency
                             # between the trail and the key
-                            resource_name=f"{self.stack_name}*",
+                            resource_name=self.stack_name + "*",
                         )
                     }
                 },
@@ -103,8 +102,13 @@ class S3TrailStack(Stack):
             # send_to_cloud_watch_logs=True,
             # cloud_watch_logs_retention=logs.RetentionDays.ONE_YEAR,
             #   have to grant kms access to a principal
-            # encryption_key=trail_key,
+            include_global_service_events=False,
+            is_multi_region_trail=False,
+            encryption_key=trail_key,
+            # management_events
+            # s3_key_prefix
         )
+        s3trail.apply_removal_policy(RemovalPolicy.DESTROY)
 
         # https://docs.aws.amazon.com/cdk/api/v2/python/aws_cdk.aws_cloudtrail/S3EventSelector.html#aws_cdk.aws_cloudtrail.S3EventSelector
         s3trail.add_s3_event_selector(
