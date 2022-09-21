@@ -7,5 +7,8 @@
   },
   "key-provider:account=286367598331:aliasName=alias/cloudtrail:region=us-east-1": {
     "keyId": "b83786b9-ce08-4517-acc3-16c349543893"
+  },
+  "key-provider:account=458358814065:aliasName=alias/aws/s3:region=us-east-1": {
+    "keyId": "2a4b4cad-0403-4a41-89dd-289b4b93ecd3"
   }
 }

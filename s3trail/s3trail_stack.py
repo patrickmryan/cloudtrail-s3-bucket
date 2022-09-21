@@ -31,7 +31,6 @@ class S3TrailStack(Stack):
                     resource="policy",
                     resource_name=permissions_boundary_policy_name,
                 )
-                print(permissions_boundary_policy_arn)
 
         if permissions_boundary_policy_arn:
             policy = iam.ManagedPolicy.from_managed_policy_arn(
@@ -57,6 +56,7 @@ class S3TrailStack(Stack):
         trail_key = kms.Key(
             self,
             "CloudtrailKey",
+            alias=self.stack_name + "-trail-key",
             enable_key_rotation=True,
             removal_policy=RemovalPolicy.DESTROY,
         )
@@ -101,7 +101,6 @@ class S3TrailStack(Stack):
             "s3trail",
             # send_to_cloud_watch_logs=True,
             # cloud_watch_logs_retention=logs.RetentionDays.ONE_YEAR,
-            #   have to grant kms access to a principal
             include_global_service_events=False,
             is_multi_region_trail=False,
             encryption_key=trail_key,

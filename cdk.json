@@ -17,7 +17,7 @@
   "context": {
 
     "EnableDebug": "True",
-    "PermissionsBoundaryPolicyArn": "",
+    "PermissionsBoundaryPolicyName": "T_PROJADMIN_U",
     "S3KmsKeyAlias": "alias/aws/s3",
 
     "@aws-cdk/aws-apigateway:usagePlanKeyOrderInsensitiveId": true,
