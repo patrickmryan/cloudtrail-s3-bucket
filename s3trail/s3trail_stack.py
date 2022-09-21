@@ -1,5 +1,5 @@
 from aws_cdk import (
-    # Duration,
+    Duration,
     Stack,
     RemovalPolicy,
     aws_s3 as s3,
@@ -58,21 +58,20 @@ class S3TrailStack(Stack):
             "CloudtrailKey",
             alias=self.stack_name + "-trail-key",
             enable_key_rotation=True,
+            pending_window=Duration.days(7),
             removal_policy=RemovalPolicy.DESTROY,
+            # admins
+            # description
+            # enable_key_rotation
         )
-        # kms_params = {
-        #     "encryption": s3.BucketEncryption.KMS,
-        #     "bucket_key_enabled": True,
-        #     "encryption_key": trail_key,
-        # }
 
         audited_bucket = s3.Bucket(
             self,
             "AuditedBucket",
             auto_delete_objects=True,
             removal_policy=RemovalPolicy.DESTROY,
-            event_bridge_enabled=True,
             block_public_access=s3.BlockPublicAccess.BLOCK_ALL,
+            event_bridge_enabled=True,
             **s3kms_params,
         )
 
